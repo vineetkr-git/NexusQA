@@ -56,9 +56,16 @@ pipeline {
 
         stage('Generate Report') {
             steps {
-                echo 'Generating Allure Report...'
                 sh '/usr/share/maven/bin/mvn allure:report || true'
-                echo 'Pipeline complete!'
+            }
+            post {
+                always {
+                    allure([
+                        includeProperties: false,
+                        jdk: '',
+                        results: [[path: 'target/allure-results']]
+                    ])
+                }
             }
         }
     }
