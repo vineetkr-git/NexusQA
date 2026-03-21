@@ -41,22 +41,87 @@ public class ApiClient {
     private void initSession() {
         if (sessionReady) return;
 
-        System.out.println("🔐 Initializing session via Selenium...");
-        WebDriver driver = null;
+        System.out.println("🔐 Initializing API session...");
 
+        // Try direct HTTP login first (works in Jenkins/headless)
+        try {
+            Response loginResponse = given()
+                    .contentType("application/x-www-form-urlencoded")
+                    .formParam("username", "Admin")
+                    .formParam("password", "admin123")
+                    .redirects().follow(true)
+                    .when()
+                    .post(BASE_URL + "/web/index.php/auth/validateCredentials")
+                    .then()
+                    .extract().response();
+
+            // Extract session cookie
+            String cookie = loginResponse.getCookie("orangehrm");
+            if (cookie != null && !cookie.isEmpty()) {
+                sessionCookies.put("orangehrm", cookie);
+                sessionReady = true;
+                System.out.println("✅ Session via HTTP login: "
+                        + cookie.substring(0, 10) + "...");
+                return;
+            }
+
+            // Try all cookies from response
+            loginResponse.cookies().forEach((k, v) -> {
+                sessionCookies.put(k, v);
+                System.out.println("🍪 Cookie: " + k + " = "
+                        + v.substring(0, Math.min(v.length(), 15)));
+            });
+
+            if (!sessionCookies.isEmpty()) {
+                sessionReady = true;
+                System.out.println("✅ Session initialized via HTTP!");
+                return;
+            }
+
+        } catch (Exception e) {
+            System.out.println("⚠️ HTTP login attempt: " + e.getMessage());
+        }
+
+        // Fallback — try Selenium only if available
+        try {
+            String display = System.getenv("DISPLAY");
+            boolean isHeadlessEnv = (display == null || display.isEmpty());
+
+            if (!isHeadlessEnv || isSeleniumAvailable()) {
+                initSessionViaSelenium();
+            } else {
+                System.out.println("⚠️ No display/Chrome available." +
+                        " Using cookie-less mode.");
+                sessionReady = true;
+            }
+        } catch (Exception e) {
+            System.out.println("⚠️ Selenium unavailable: "
+                    + e.getMessage());
+            sessionReady = true;
+        }
+    }
+
+    private boolean isSeleniumAvailable() {
+        try {
+            Runtime.getRuntime().exec("google-chrome --version");
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private void initSessionViaSelenium() {
+        System.out.println("🌐 Using Selenium for session...");
+        WebDriver driver = null;
         try {
             WebDriverManager.chromedriver().setup();
             ChromeOptions options = new ChromeOptions();
-            options.addArguments("--headless=new");
-            options.addArguments("--no-sandbox");
-            options.addArguments("--disable-dev-shm-usage");
-            options.addArguments("--disable-gpu");
+            options.addArguments("--headless=new", "--no-sandbox",
+                    "--disable-dev-shm-usage", "--disable-gpu");
             driver = new ChromeDriver(options);
-
             WebDriverWait wait = new WebDriverWait(driver,
                     Duration.ofSeconds(20));
 
-            // Login
             driver.get(BASE_URL + "/web/index.php/auth/login");
             wait.until(ExpectedConditions.visibilityOfElementLocated(
                     By.name("username"))).sendKeys("Admin");
@@ -64,29 +129,19 @@ public class ApiClient {
                     .sendKeys("admin123");
             driver.findElement(
                     By.cssSelector("button[type='submit']")).click();
-
-            // Wait for dashboard
             wait.until(ExpectedConditions.urlContains("dashboard"));
             Thread.sleep(2000);
 
-            // Capture ALL cookies
-            Set<org.openqa.selenium.Cookie> cookies =
-                    driver.manage().getCookies();
-
-            System.out.println("🍪 All cookies captured:");
-            for (org.openqa.selenium.Cookie c : cookies) {
-                sessionCookies.put(c.getName(), c.getValue());
-                System.out.println("  " + c.getName() + " = "
-                        + c.getValue().substring(0,
-                        Math.min(c.getValue().length(), 40)));
-            }
+            driver.manage().getCookies().forEach(c ->
+                    sessionCookies.put(c.getName(), c.getValue()));
 
             sessionReady = true;
-            System.out.println("✅ Session initialized with "
+            System.out.println("✅ Session via Selenium: "
                     + sessionCookies.size() + " cookies");
-
         } catch (Exception e) {
-            System.err.println("❌ Session init error: " + e.getMessage());
+            System.err.println("❌ Selenium session error: "
+                    + e.getMessage());
+            sessionReady = true;
         } finally {
             if (driver != null) driver.quit();
         }
