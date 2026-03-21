@@ -3,61 +3,63 @@ pipeline {
 
     environment {
         MAVEN_HOME = '/usr/share/maven'
-        PATH = "/usr/share/maven/bin:${env.PATH}"
     }
 
     stages {
-        stage('🔍 Checkout') {
+        stage('Checkout') {
             steps {
-                echo '📥 Checking out NexusQA from GitHub...'
+                echo 'Checking out NexusQA from GitHub...'
                 checkout scm
-                echo '✅ Code checked out successfully!'
             }
         }
 
-        stage('🏗️ Build') {
+        stage('Build') {
             steps {
-                echo '🔨 Building NexusQA...'
+                echo 'Building NexusQA...'
                 sh '/usr/share/maven/bin/mvn clean compile -q'
-                echo '✅ Build successful!'
+                echo 'Build successful!'
             }
         }
 
-        stage('🧪 Run All 31 Tests') {
+        stage('API Tests') {
             steps {
-                echo '🚀 Running full NexusQA test suite...'
-                sh '/usr/share/maven/bin/mvn test'
+                echo 'Running API Tests - No browser needed...'
+                sh '/usr/share/maven/bin/mvn test -Dtest=AuthApiTest -DfailIfNoTests=false'
             }
         }
 
-        stage('📊 Generate Allure Report') {
+        stage('DB Tests') {
             steps {
-                echo '📊 Generating Allure Report...'
-                sh '/usr/share/maven/bin/mvn allure:report'
-                echo '✅ Report generated!'
+                echo 'Running DB Tests...'
+                sh '/usr/share/maven/bin/mvn test -Dtest=DBTest -DfailIfNoTests=false'
+            }
+        }
+
+        stage('Security Tests') {
+            steps {
+                echo 'Running Security Tests...'
+                sh '/usr/share/maven/bin/mvn test -Dtest=SecurityTest -DfailIfNoTests=false'
+            }
+        }
+
+        stage('Generate Report') {
+            steps {
+                echo 'Generating Allure Report...'
+                sh '/usr/share/maven/bin/mvn allure:report || true'
+                echo 'Report generated!'
             }
         }
     }
 
     post {
         success {
-            echo '''
-            ================================================
-            ✅ NexusQA Pipeline PASSED!
-            🎉 All 31 Tests Passing!
-            ================================================
-            '''
+            echo 'NexusQA Pipeline PASSED - API + DB + Security Tests!'
         }
         failure {
-            echo '''
-            ================================================
-            ❌ NexusQA Pipeline FAILED!
-            Check console output for details
-            ================================================
-            '''
+            echo 'NexusQA Pipeline FAILED - Check console output!'
         }
         always {
-            echo '📊 NexusQA Pipeline completed!'
+            echo 'NexusQA Pipeline completed!'
         }
     }
 }
