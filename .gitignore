@@ -1,0 +1,22 @@
+# Maven
+target/
+*.class
+
+# Reports (generated)
+reports/NexusQA_Latest_Report.html
+reports/screenshots/
+allure-results/
+
+# Config (sensitive)
+src/main/resources/config.properties
+
+# IDE
+.idea/
+*.iml
+.mvn/
+
+# Docker
+docker/selenium-grid/.env
+
+# Logs
+*.log

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="NexusQA Suite" parallel="classes"
+       thread-count="4" verbose="2">
+
+    <listeners>
+        <listener class-name="com.nexusqa.reporting.ReportListener"/>
+        <listener class-name="io.qameta.allure.testng.AllureTestNg"/>
+    </listeners>
+
+    <test name="UI Tests - Login"
+          parallel="methods" thread-count="2">
+        <classes>
+            <class name="com.nexusqa.ui.LoginTest"/>
+        </classes>
+    </test>
+
+    <test name="UI Tests - Employee"
+          parallel="methods" thread-count="2">
+        <classes>
+            <class name="com.nexusqa.ui.EmployeeTest"/>
+        </classes>
+    </test>
+
+    <test name="UI Tests - Leave"
+          parallel="methods" thread-count="2">
+        <classes>
+            <class name="com.nexusqa.ui.LeaveTest"/>
+        </classes>
+    </test>
+
+    <test name="API Tests">
+        <classes>
+            <class name="com.nexusqa.api.AuthApiTest"/>
+        </classes>
+    </test>
+
+    <test name="DB Tests">
+        <classes>
+            <class name="com.nexusqa.db.DBTest"/>
+        </classes>
+    </test>
+
+    <test name="Security Tests">
+        <classes>
+            <class name="com.nexusqa.security.SecurityTest"/>
+        </classes>
+    </test>
+
+</suite>

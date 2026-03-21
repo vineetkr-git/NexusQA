@@ -1,0 +1,38 @@
+# ===== APPLICATION =====
+app.url=https://opensource-demo.orangehrmlive.com
+app.username=Admin
+app.password=admin123
+
+# ===== API =====
+api.base.url=https://opensource-demo.orangehrmlive.com/web/index.php/api/v2
+api.username=Admin
+api.password=admin123
+
+# ===== BROWSER =====
+browser=chrome
+headless=true
+implicit.wait=10
+explicit.wait=20
+
+# ===== SELENIUM GRID =====
+grid.url=http://localhost:4444/wd/hub
+grid.enabled=true
+
+# ===== DATABASE =====
+db.url=jdbc:h2:mem:testdb
+db.username=sa
+db.password=
+
+# ===== EMAIL =====
+email.enabled=false
+email.host=smtp.gmail.com
+email.port=587
+email.username=your@gmail.com
+email.password=yourpassword
+email.to=team@company.com
+
+# ===== AI AGENTS =====
+ollama.url=http://localhost:11434
+ollama.model=phi
+openai.api.key=YOUR_OPENAI_KEY
+ai.enabled=true
