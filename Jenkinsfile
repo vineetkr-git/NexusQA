@@ -44,4 +44,20 @@ pipeline {
             echo '''
             ================================================
             ✅ NexusQA Pipeline PASSED!
-            🎉 All 31 Tests
+            🎉 All 31 Tests Passing!
+            ================================================
+            '''
+        }
+        failure {
+            echo '''
+            ================================================
+            ❌ NexusQA Pipeline FAILED!
+            Check console output for details
+            ================================================
+            '''
+        }
+        always {
+            echo '📊 NexusQA Pipeline completed!'
+        }
+    }
+}
