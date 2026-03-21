@@ -1,42 +1,47 @@
 pipeline {
     agent any
 
+    environment {
+        MAVEN_HOME = '/usr/share/maven'
+        PATH = "/usr/share/maven/bin:${env.PATH}"
+    }
+
     stages {
         stage('🔍 Checkout') {
             steps {
-                echo '📥 Checking out NexusQA...'
+                echo '📥 Checking out NexusQA from GitHub...'
                 checkout scm
+                echo '✅ Code checked out successfully!'
             }
         }
 
         stage('🏗️ Build') {
             steps {
-                echo '🔨 Building...'
-                sh 'mvn clean compile -q'
+                echo '🔨 Building NexusQA...'
+                sh '/usr/share/maven/bin/mvn clean compile -q'
+                echo '✅ Build successful!'
             }
         }
 
-        stage('🧪 Run All Tests') {
+        stage('🧪 Run All 31 Tests') {
             steps {
-                echo '🚀 Running 31 tests...'
-                sh 'mvn test'
+                echo '🚀 Running full NexusQA test suite...'
+                sh '/usr/share/maven/bin/mvn test'
             }
         }
 
-        stage('📊 Allure Report') {
+        stage('📊 Generate Allure Report') {
             steps {
-                echo '📊 Generating report...'
-                sh 'mvn allure:report'
+                echo '📊 Generating Allure Report...'
+                sh '/usr/share/maven/bin/mvn allure:report'
+                echo '✅ Report generated!'
             }
         }
     }
 
     post {
         success {
-            echo '✅ NexusQA — ALL 31 TESTS PASSED!'
-        }
-        failure {
-            echo '❌ Pipeline FAILED — check logs!'
-        }
-    }
-}
+            echo '''
+            ================================================
+            ✅ NexusQA Pipeline PASSED!
+            🎉 All 31 Tests
