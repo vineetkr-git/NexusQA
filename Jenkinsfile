@@ -16,7 +16,11 @@ pipeline {
         stage('Build') {
             steps {
                 echo 'Building NexusQA...'
-                sh '/usr/share/maven/bin/mvn clean compile -q'
+                sh '''
+                    mkdir -p src/main/resources
+                    printf 'app.url=https://opensource-demo.orangehrmlive.com\napp.username=Admin\napp.password=admin123\ngrid.enabled=false\ngrid.url=http://localhost:4444\nollama.url=http://host.docker.internal:11434\nollama.model=phi\nemail.enabled=false\ndb.url=jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1\ndb.username=sa\ndb.password=\ndb.driver=org.h2.Driver\n' > src/main/resources/config.properties
+                    /usr/share/maven/bin/mvn clean compile -q
+                '''
                 echo 'Build successful!'
             }
         }
