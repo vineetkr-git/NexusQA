@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nexusqa-config
+  namespace: nexusqa
+data:
+  config.properties: |
+    app.url=https://opensource-demo.orangehrmlive.com
+    app.username=Admin
+    app.password=admin123
+    browser=chrome
+    grid.enabled=true
+    grid.url=http://selenium-hub:4444
+    ollama.url=http://ollama:11434
+    ollama.model=phi
+    email.enabled=false
+    db.url=jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
+    db.username=sa
+    db.password=
+    db.driver=org.h2.Driver
+    aws.endpoint=http://localstack:4566
+    aws.region=us-east-1
+    aws.accessKey=test
+    aws.secretKey=test
+    aws.s3.bucket=nexusqa-reports
+    aws.sns.topic=nexusqa-alerts
+    aws.cloudwatch.namespace=NexusQA/Tests

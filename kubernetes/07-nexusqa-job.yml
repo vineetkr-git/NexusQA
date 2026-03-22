@@ -1,0 +1,69 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: nexusqa-tests
+  namespace: nexusqa
+spec:
+  ttlSecondsAfterFinished: 300
+  template:
+    spec:
+      restartPolicy: Never
+      initContainers:
+        - name: wait-for-hub
+          image: curlimages/curl:latest
+          command: ['sh', '-c',
+            'until curl -s http://selenium-hub:4444/status | grep -q "ready"; do echo "Waiting for Selenium Hub..."; sleep 5; done; echo "Hub ready!"']
+        - name: wait-for-localstack
+          image: curlimages/curl:latest
+          command: ['sh', '-c',
+            'until curl -s http://localstack:4566/_localstack/health | grep -q "running"; do echo "Waiting for LocalStack..."; sleep 5; done; echo "LocalStack ready!"']
+      containers:
+        - name: nexusqa-runner
+          image: maven:3.9.6-eclipse-temurin-17
+          command: ['sh', '-c']
+          args:
+            - |
+              echo "🚀 NexusQA Test Runner Starting..."
+              cd /workspace
+
+              # Copy config
+              mkdir -p src/main/resources
+              cp /config/config.properties src/main/resources/config.properties
+
+              echo "📦 Building NexusQA..."
+              mvn clean compile -q
+
+              echo "🗄️ Running DB Tests..."
+              mvn test -Dtest=DBTest -DfailIfNoTests=false || true
+
+              echo "🔒 Running Security Tests..."
+              mvn test -Dtest=SecurityTest -DfailIfNoTests=false || true
+
+              echo "🔌 Running API Tests..."
+              mvn test -Dtest=AuthApiTest -DfailIfNoTests=false || true
+
+              echo "☁️ Running AWS Tests..."
+              mvn test -Dtest=AWSTest -DfailIfNoTests=false || true
+
+              echo "📊 Generating Allure Report..."
+              mvn allure:report || true
+
+              echo "✅ NexusQA K8s Run Complete!"
+          volumeMounts:
+            - name: nexusqa-source
+              mountPath: /workspace
+            - name: config-volume
+              mountPath: /config
+          resources:
+            requests:
+              memory: "2Gi"
+              cpu: "500m"
+            limits:
+              memory: "4Gi"
+              cpu: "2000m"
+      volumes:
+        - name: nexusqa-source
+          emptyDir: {}
+        - name: config-volume
+          configMap:
+            name: nexusqa-config
