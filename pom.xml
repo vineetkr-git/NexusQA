@@ -190,11 +190,7 @@
             <artifactId>lambda</artifactId>
             <version>${aws.version}</version>
         </dependency>
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>url-connection-client</artifactId>
-            <version>${aws.version}</version>
-        </dependency>
+       
 
     </dependencies>
 
